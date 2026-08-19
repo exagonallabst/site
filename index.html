@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>xixi mi mocha</title>
+<title>Para ti</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Homemade+Apple&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -351,7 +351,7 @@
     <div class="card-panel">
       <img class="mascot bob gatita-fill" alt="Gatita con moño rosa">
       <!-- EDITA: pon aquí el nombre de tu persona especial -->
-      <h1 class="gate-title">Hola, mi niña</h1>
+      <h1 class="gate-title">¡Hola, mi amor!</h1>
       <p class="gate-sub">¿Quieres ver el regalo que te hice?</p>
       <div class="gate-actions">
         <button class="btn" onclick="showScreen('screen-menu')">Sí, por favor</button>
@@ -424,7 +424,7 @@
       <div class="polaroid"><div class="photo-slot" data-slot="3"><div class="plus">＋</div>foto 3</div><img class="sticker gatita-fill" alt="Gatita con moño rosa"></div>
       <div class="polaroid"><div class="photo-slot" data-slot="4"><div class="plus">＋</div>foto 4</div><img class="sticker gatita-fill" alt="Gatita con moño rosa"></div>
     </div>
-    <div class="gallery-caption">te quiero muchisimo :3</div>
+    <div class="gallery-caption">Toca cada cuadro para poner tu foto</div>
   </div>
 </section>
 
@@ -474,11 +474,11 @@
   <button class="next-arrow" onclick="showScreen('screen-reasons')">→</button>
   <div class="inner">
     <div class="paper">
-      <h2>Para ti mi xixi</h2>
+      <h2>Para ti mi amor</h2>
       <!-- EDITA: reemplaza este texto por tu propia carta -->
-      <p>Quiero aprovechar esta pequeña carta para expresarte todo el cariño que siento por ti, aunque sé que a veces las palabras no son suficientes para explicar todo lo que llevas dentro de mi corazón.</p>
-      <p>Me haces feliz cuando hablamos siempre y te quiero mucho. Amo cada momento contigo, nuestras conversaciones, nuestras risas, los pequeños detalles y hasta esos momentos que quizás parecen simples pero que para mí significan muchísimo.</p>
-      <p>Gracias por estar conmigo aunque lo que a pasado es malo, por hacerme feliz de tantas maneras y por estar en mi corazoncito<3.</p>
+      <p>Quiero aprovechar esta pequeña carta para expresarte todo el amor que siento por ti, aunque sé que a veces las palabras no son suficientes para explicar todo lo que llevas dentro de mi corazón.</p>
+      <p>Me haces sentir cosas que no siempre sé cómo explicar, pero sé que siento con mucha fuerza. Amo cada momento contigo, nuestras conversaciones, nuestras risas, los pequeños detalles y hasta esos momentos que quizás parecen simples pero que para mí significan muchísimo.</p>
+      <p>Gracias por existir en mi vida, por hacerme feliz de tantas maneras y por convertirte en una parte tan importante de mi corazón.</p>
       <div class="signature script">Te amo</div>
     </div>
   </div>
@@ -495,11 +495,11 @@
 
     <!-- EDITA: cambia estas razones por las tuyas, agrega o quita <li> -->
     <ul class="reasons-list">
-      <li><span class="n">01</span> Por pasar siempre conmigo.</li>
+      <li><span class="n">01</span> Por cómo te ríes de tus propios chistes.</li>
       <li><span class="n">02</span> Porque me escuchas incluso cuando no digo mucho.</li>
       <li><span class="n">03</span> Por todos los planes pequeños que se sienten grandes contigo.</li>
-      <li><span class="n">04</span> Porque me haces querer cambiar de como era.</li>
-      <li><span class="n">05</span> Por siempre ser tu este tiempo:3.</li>
+      <li><span class="n">04</span> Porque me haces querer ser mejor persona.</li>
+      <li><span class="n">05</span> Por simplemente ser tú.</li>
     </ul>
   </div>
 </section>
@@ -522,6 +522,46 @@
     var urlForm = document.getElementById('pp-url-form');
     var urlInput = document.getElementById('pp-url-input');
 
+    // Comprime/redimensiona una imagen (dataURL o URL) antes de guardarla,
+    // para no superar el límite de localStorage (~5-10MB por sitio).
+    function compressImage(src, maxDim, quality){
+      return new Promise(function(resolve){
+        var img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = function(){
+          try {
+            var w = img.naturalWidth, h = img.naturalHeight;
+            var scale = Math.min(1, maxDim / Math.max(w, h));
+            var cw = Math.max(1, Math.round(w * scale));
+            var ch = Math.max(1, Math.round(h * scale));
+            var canvas = document.createElement('canvas');
+            canvas.width = cw; canvas.height = ch;
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, cw, ch);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          } catch (e) {
+            // si falla (ej. imagen de otro origen sin CORS), usamos el original
+            resolve(src);
+          }
+        };
+        img.onerror = function(){ resolve(src); };
+        img.src = src;
+      });
+    }
+
+    // Intenta guardar en localStorage; si falla (cuota superada, modo
+    // privado, etc.) avisa en vez de fallar en silencio.
+    function trySetItem(key, value){
+      try {
+        localStorage.setItem(key, value);
+        return true;
+      } catch (e) {
+        alert('No se pudo guardar la foto en este navegador (probablemente por falta de espacio). ' +
+              'Probá con una foto más liviana, o revisá que no estés en modo incógnito/privado.\n\nDetalle: ' + e);
+        return false;
+      }
+    }
+
     function setSlotImage(slot, src){
       slot.classList.add('has-photo');
       slot.innerHTML = '';
@@ -536,7 +576,7 @@
     }
 
     function saveSlot(slot, src){
-      try { localStorage.setItem(SLOT_PREFIX + slot.dataset.slot, src); } catch(e){}
+      trySetItem(SLOT_PREFIX + slot.dataset.slot, src);
     }
 
     function removeSlotImage(slot){
@@ -562,7 +602,7 @@
     }
 
     function saveGatita(src){
-      try { localStorage.setItem(GATITA_KEY, src); } catch(e){}
+      trySetItem(GATITA_KEY, src);
     }
 
     function loadSavedGatita(){
@@ -573,13 +613,19 @@
 
     function applyToTarget(src){
       if (!currentTarget) return;
-      if (currentTarget.type === 'slot'){
-        setSlotImage(currentTarget.el, src);
-        saveSlot(currentTarget.el, src);
-      } else if (currentTarget.type === 'gatita'){
-        setGatitaImage(src);
-        saveGatita(src);
-      }
+      var target = currentTarget; // por si el popover se cierra mientras comprimimos
+      // las fotos de galería con maxDim más chico (se ven en polaroids pequeñas);
+      // la gatita un poco más grande porque aparece como mascota principal
+      var maxDim = target.type === 'gatita' ? 900 : 700;
+      compressImage(src, maxDim, 0.82).then(function(compressed){
+        if (target.type === 'slot'){
+          setSlotImage(target.el, compressed);
+          saveSlot(target.el, compressed);
+        } else if (target.type === 'gatita'){
+          setGatitaImage(compressed);
+          saveGatita(compressed);
+        }
+      });
     }
 
     function openPopover(target){
