@@ -53,7 +53,7 @@
   .mascot.small{ width:56px; }
   .gatita-fill{ border-radius:50%; object-fit:cover; border:3px solid #fff; box-shadow:0 10px 22px -12px rgba(168,38,74,.45); background:var(--rose-softer); cursor:pointer; transition:opacity .2s ease, transform .35s ease; touch-action:manipulation; -webkit-user-select:none; user-select:none; }
   .gatita-fill:hover{ opacity:.85; }
-  .gatita-fill.pressing{ transform:scale(.92); opacity:.7; }
+  .gatita-fill.pressing{ transform:scale(.98); opacity:.7; }
   .gatita-fill.no-frame{ border-radius:0; border:none; box-shadow:none; background:transparent; object-fit:contain; }
   .mascot.small.gatita-fill{ border-width:2px; }
   .bob{ animation:bob 3.2s ease-in-out infinite; }
@@ -615,6 +615,12 @@
         if (pressTimer) return;
         longPressFired = false;
         el.classList.add('pressing');
+        // capturamos el puntero para que, aunque el cursor quede
+        // fuera del elemento al encogerse (transform: scale), el
+        // press no se cancele por un pointerleave "falso"
+        if (e && e.pointerId != null && el.setPointerCapture){
+          try { el.setPointerCapture(e.pointerId); } catch(err){}
+        }
         pressTimer = setTimeout(function(){
           longPressFired = true;
           el.classList.remove('pressing');
